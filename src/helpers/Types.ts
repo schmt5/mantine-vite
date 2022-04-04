@@ -1,22 +1,23 @@
 export type TChoice = {
     label: string,
-    isCorrect: boolean,
+    isCorrect: string,
 }
 
 export type TChoiceQuestion = {
     __typename: string,
     choiceQuestionBlock: boolean,
-    id: string,
+    id: number,
     label: string,
-    choices: TChoice[],
+    choices: string[],
+    solution: string[],
 }
 
 export type TTextQuestion = {
     __typename: string,
     textBlock: boolean,
-    id: string,
+    id: number,
     label: string,
-    answer: string,
+    solution: string,
 }
 
 export type TQuestion = TChoiceQuestion | TTextQuestion;

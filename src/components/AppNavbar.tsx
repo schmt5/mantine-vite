@@ -22,7 +22,6 @@ export const AppNavbar = ({ open }: IAppNavbar) => {
         newOrder.splice(source.index, 1);
         newOrder.splice(destination.index, 0, draggableId);
         setOrder(newOrder);
-
     };
 
     return (
@@ -89,5 +88,5 @@ export const AppNavbar = ({ open }: IAppNavbar) => {
             {/* Last section with normal height (depends on section content) */}
             <Navbar.Section>Last section</Navbar.Section>
         </Navbar>
-    )
+    );
 }

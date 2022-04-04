@@ -1,43 +1,32 @@
-import { useEffect, useState } from 'react'
-import { ActionIcon, AppShell, Burger, Grid, Header, MediaQuery, Navbar, Paper, Select, SimpleGrid, Text, TextInput, useMantineTheme } from '@mantine/core';
+import { useEffect, useReducer, useState } from 'react'
+import { AppShell } from '@mantine/core';
 import { useBooleanToggle } from '@mantine/hooks';
-import './App.css'
 import { Question } from './components/Question';
-import { AddMenu } from './components/AddMenu';
 import { AppHeader } from './components/AppHeader';
 import { AppNavbar } from './components/AppNavbar';
-import { TQuestion, TChoiceQuestion } from './helpers/Types';
+import { ControlBar } from './components/ControlBar';
+import { TextEditorBlock } from './components/TextEditorBlock/TextEditorBlock';
+import { reducer } from './helpers/reducer';
+import { fetchChoiceQuestion, fetchTextQuestion } from './helpers/supabaseQueries';
 
-
-
-function App() {
-  const pages = [
-    {
-      id: 'pg-1',
-      title: 'Page 1'
-    },
-    {
-      id: 'pg-2',
-      title: 'Page 2'
-    },
-    {
-      id: 'pg-3',
-      title: 'Page 3'
-    },
-    {
-      id: 'pg-4',
-      title: 'Page 4'
-    },
-  ];
-
+export const App = () => {
   const [open, toggleOpen] = useBooleanToggle(false);
-  const [questions, setQuestions] = useState<TQuestion[]>([]);
+  const [view, setView] = useState('author');
+  const [state, dispatch] = useReducer(reducer, []);
 
+  const fetchInitState = async () => {
+    // const questions = await fetchTextQuestion();
+    const questions = await fetchChoiceQuestion();
 
-
-  const addQuestion = (question: TQuestion) => {
-    setQuestions(prevState => [...prevState, question])
+    dispatch({
+      type: 'fetched',
+      payload: questions,
+    });
   }
+
+  useEffect(() => {
+    fetchInitState();
+  }, []);
 
   return (
     <AppShell
@@ -46,17 +35,26 @@ function App() {
       // fixed prop on AppShell will be automatically added to Header and Navbar
       fixed
       navbar={<AppNavbar open={open} />}
-      header={<AppHeader open={open} toggle={toggleOpen} />}
-      sx={(theme) => ({background: theme.colors.gray[0]})}
+      header={<AppHeader
+        open={open}
+        toggle={toggleOpen}
+        view={view}
+        setView={setView}
+      />}
+      sx={(theme) => ({ background: theme.colors.gray[0] })}
     >
-      <AddMenu addQuestion={addQuestion} />
-      <div style={{ marginTop: 48, display: 'grid', gap: 32 }}>
-        {questions.map(q => (
-          <Question key={q.id} question={q} />
+      <ControlBar dispatch={dispatch} />
+      <div style={{ marginTop: 86, display: 'grid', gap: 32 }}>
+        <TextEditorBlock view={view} />
+        {state.map(q => (
+          <Question
+            key={q.id}
+            question={q}
+            dispatch={dispatch}
+            view={view}
+          />
         ))}
       </div>
     </AppShell>
   )
 }
-
-export default App

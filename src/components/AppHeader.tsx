@@ -1,12 +1,13 @@
-import * as React from 'react';
-import { Burger, Header, MediaQuery, Text, useMantineTheme } from '@mantine/core';
+import { Burger, Group, Header, MediaQuery, SegmentedControl, Text, useMantineTheme } from '@mantine/core';
 
 interface IAppHeader {
     open: boolean;
-    toggle: () => void
+    toggle: () => void;
+    view: string;
+    setView: (view: string) => void;
 }
 
-export const AppHeader = ({ open, toggle }: IAppHeader) => {
+export const AppHeader = ({ open, toggle, view, setView }: IAppHeader) => {
     const theme = useMantineTheme();
 
     return (
@@ -23,7 +24,17 @@ export const AppHeader = ({ open, toggle }: IAppHeader) => {
                     />
                 </MediaQuery>
 
-                <Text>Application header</Text>
+                <Group sx={{ flexGrow: 1 }} position='apart'>
+                    <Text>Application header</Text>
+                    <SegmentedControl
+                        value={view}
+                        onChange={view => setView(view)}
+                        data={[
+                            { label: 'Autor', value: 'author' },
+                            { label: 'Student', value: 'student' },
+                        ]}
+                    />
+                </Group>
             </div>
         </Header>
     );
