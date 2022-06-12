@@ -1,6 +1,6 @@
-import { TQuestion } from "./Types"
+import { TBlock, TQuestion } from "./Types"
 
-export const reducer = (state: TQuestion[], action: any): TQuestion[] => {
+export const reducer = (state: TBlock[], action: any): TBlock[] => {
     if (action.type === 'fetched') {
         return [...action.payload];
     } else if (action.type === 'insert') {

@@ -1,28 +1,130 @@
 import * as React from 'react';
-import { ActionIcon, Navbar } from '@mantine/core';
-import { DragDropContext, Draggable, Droppable, DropResult } from 'react-beautiful-dnd';
-import { Folder } from 'tabler-icons-react';
+import { useEffect, useReducer, useState } from 'react'
+import { ActionIcon, Button, Group, Navbar, ThemeIcon } from '@mantine/core';
+import Tree, {
+    mutateTree,
+    moveItemOnTree,
+    RenderItemParams,
+    TreeItem,
+    TreeData,
+    ItemId,
+    TreeSourcePosition,
+    TreeDestinationPosition,
+} from '@atlaskit/tree';
+import { treeWithTwoBranches } from '@atlaskit/tree/mockdata/treeWithTwoBranches';
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, GripVertical } from 'tabler-icons-react';
+import { flattenTree, getParent } from '@atlaskit/tree/dist/es2019/utils/tree.js';
+import { FlattenedItem } from '@atlaskit/tree/dist/types/types';
+import { fetchSyllabus } from '../helpers/supabaseQueries';
 
 interface IAppNavbar {
     open: boolean;
+    setCurrentPage: any;
 }
 
-export const AppNavbar = ({ open }: IAppNavbar) => {
-    const [order, setOrder] = React.useState(['pg-1', 'pg-2', 'pg-3', 'pg-4'])
-    const handleDragEnd = ({ destination, source, draggableId }: DropResult) => {
+export const AppNavbar = ({ open, setCurrentPage }: IAppNavbar) => {
+    const [tree, setTree] = useState<TreeData>(treeWithTwoBranches);
+
+    const fetchInitSyllabus = async () => {
+        const syllabus = await fetchSyllabus();
+        console.log(syllabus)
+        if (syllabus === undefined) {
+            return;
+        }
+        const items = Object.fromEntries(
+            syllabus.map(it => [it.id, it])
+        );
+        const initTree = {
+            rootId: 0,
+            items: items
+        }
+
+        //setCurrentPage(syllabus[])
+        setTree(initTree);
+
+    }
+
+    useEffect(() => {
+        fetchInitSyllabus();
+    }, []);
+
+
+
+    const onExpand = (itemId: ItemId) => {
+        const newTree = mutateTree(tree, itemId, { isExpanded: true })
+        setTree(newTree);
+    }
+
+    const onCollapse = (itemId: ItemId) => {
+        const newTree = mutateTree(tree, itemId, { isExpanded: false })
+        setTree(newTree)
+    }
+
+    const onDragEnd = (source: TreeSourcePosition, destination?: TreeDestinationPosition) => {
         if (!destination) {
             return;
         }
 
-        if (destination.index === source.index) {
-            return;
-        }
+        const newTree = moveItemOnTree(tree, source, destination);
+        setTree(newTree);
+    }
 
-        const newOrder = [...order]
-        newOrder.splice(source.index, 1);
-        newOrder.splice(destination.index, 0, draggableId);
-        setOrder(newOrder);
-    };
+    const moveItem = (item: TreeItem, step: number) => {
+        const flatTree: FlattenedItem[] = flattenTree(tree);
+        const flatItem = flatTree.find(it => it.item.id === item.id);
+        const parent: TreeItem = getParent(tree, flatItem?.path);
+        const index = parent.children.findIndex(child => child === item.id);
+        const newTree = moveItemOnTree(tree, { parentId: parent.id, index: index }, { parentId: parent.id, index: index + step })
+
+        setTree(newTree)
+    }
+
+    const renderItem = ({ item, onExpand, onCollapse, provided }: RenderItemParams) => {
+        return (
+            <div
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+            >
+                <Group sx={{ gap: 2, padding: '4px 0' }}>
+                    <div {...provided.dragHandleProps}>
+                        <GripVertical size={18} style={{ display: 'block' }} />
+                    </div>
+                    {item.children && item.children.length > 0 && (
+                        <>
+                            {item.isExpanded ? (
+                                <ActionIcon onClick={() => onCollapse(item.id)}>
+                                    <ChevronDown size={18} />
+                                </ActionIcon>
+                            ) : (
+                                <ActionIcon onClick={() => onExpand(item.id)}>
+                                    <ChevronRight size={18} />
+                                </ActionIcon>
+                            )}
+                        </>
+                    )}
+                    <Button
+                        variant='default'
+                        color={'dark'}
+                        sx={{ flex: 1, border: 'none' }}
+                        onClick={() => setCurrentPage(item.id)}
+                    >
+                        {item.data.title}
+                    </Button>
+
+                    <ActionIcon onClick={() => moveItem(item, -1)}>
+                        <ArrowUp size={18} />
+                    </ActionIcon>
+                    <ActionIcon onClick={() => moveItem(item, 1)}>
+                        <ArrowDown size={18} />
+                    </ActionIcon>
+                </Group>
+            </div>
+        );
+    }
+
+    React.useEffect(() => {
+        console.log(tree)
+    }, [tree])
 
     return (
         <Navbar
@@ -41,48 +143,14 @@ export const AppNavbar = ({ open }: IAppNavbar) => {
 
             {/* Grow section will take all available space that is not taken by first and last sections */}
             <Navbar.Section grow>
-                <DragDropContext
-                    onDragEnd={handleDragEnd}
-                >
-                    <Droppable
-                        droppableId='pages'
-                    >
-                        {(provided) => (
-                            <div
-                                {...provided.droppableProps}
-                                ref={provided.innerRef}
-                            >
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                    {order.map((page, index) => (
-                                        <Draggable
-                                            key={page}
-                                            draggableId={page}
-                                            index={index}
-                                        >
-                                            {(provided) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                >
-                                                    <div style={{ padding: 16, border: '1px solid black', backgroundColor: 'white' }}>
-                                                        {page}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-
-                            </div>
-                        )}
-                    </Droppable>
-                </DragDropContext>
-
-                <ActionIcon variant='filled' color="green">
-                    <Folder size={18} />
-                </ActionIcon>
+                <Tree
+                    tree={tree}
+                    renderItem={renderItem}
+                    onExpand={onExpand}
+                    onCollapse={onCollapse}
+                    onDragEnd={onDragEnd}
+                    isDragEnabled={true}
+                />
             </Navbar.Section>
 
             {/* Last section with normal height (depends on section content) */}

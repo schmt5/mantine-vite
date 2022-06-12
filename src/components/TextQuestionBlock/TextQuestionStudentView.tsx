@@ -1,17 +1,12 @@
-import { Button, Group, Paper, TextInput, Text, Alert } from "@mantine/core";
+import { Button, Group, Paper, TextInput, Text, Alert, Transition } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import { AlertCircle, Check, LetterA } from "tabler-icons-react";
+import { initStatus } from "../../helpers/InitBlocks";
 import { TTextQuestion } from "../../helpers/Types";
 
 interface ITextQuestionStudentView {
     question: TTextQuestion;
-}
-
-const initStatus = {
-    show: false,
-    correct: false,
-    label: '',
 }
 
 export const TextQuestionStudentView = ({ question }: ITextQuestionStudentView) => {
@@ -26,17 +21,15 @@ export const TextQuestionStudentView = ({ question }: ITextQuestionStudentView) 
         <Paper p={'md'}>
             <form onSubmit={form.onSubmit((values) => {
                 let status;
-                if (values.answer.trim().toLocaleLowerCase().localeCompare(question.solution.toLocaleLowerCase()) !== 0) {
-                    status = { show: true, correct: false, label: 'Leider nein' }
-                } else {
+                if (values.answer.trim().toLocaleLowerCase().localeCompare(question.data.option.toLocaleLowerCase()) === 0) {
                     status = { show: true, correct: true, label: 'Gut gemacht' }
+                } else {
+                    status = { show: true, correct: false, label: 'Leider nein' }
                 }
 
                 setCheckStatus(status)
-
-
             })}>
-                <Text weight={500}>{question.label}</Text>
+                <Text weight={500}>{question.data.label}</Text>
                 <TextInput
                     mt={'md'}
                     aria-label="Antwort"
@@ -44,18 +37,24 @@ export const TextQuestionStudentView = ({ question }: ITextQuestionStudentView) 
                     icon={<LetterA size={18} />}
                     {...form.getInputProps('answer')}
                 />
-                {checkStatus.show && (
-                    <Alert
-                        mt={'xl'}
-                        icon={checkStatus.correct ? <Check size={18} /> : <AlertCircle size={18} />}
-                        title={checkStatus.label}
-                        color={checkStatus.correct ? 'green' : 'orange'}
-                    >
-                        Erkährung kommt hier.
-                    </Alert>
-                )}
+
+                <Transition mounted={checkStatus.show} transition={'scale'} duration={250} timingFunction="ease-out">
+                    {(styles) => (
+                        <div style={styles}>
+                            <Alert
+                                mt={'xl'}
+                                icon={checkStatus.correct ? <Check size={18} /> : <AlertCircle size={18} />}
+                                title={checkStatus.label}
+                                color={checkStatus.correct ? 'green' : 'orange'}
+                            >
+                                {question.data.note}
+                            </Alert>
+                        </div>
+                    )}
+                </Transition>
+
                 <Group position='right' mt={'xl'}>
-                    <Button type='submit' variant="subtle">Check</Button>
+                    <Button type='submit' variant="subtle">Überprüfen</Button>
                 </Group>
             </form>
         </Paper>

@@ -7,15 +7,17 @@ interface IQueston {
     question: TQuestion;
     dispatch: any;
     view: string;
+    currentPage: number;
 }
 
-export const Question = ({ question, dispatch, view }: IQueston) => {
+export const Question = ({ question, dispatch, view, currentPage }: IQueston) => {
     if (isChoiceQuestion(question)) {
         return (
             <ChoiceQuestionBlock
                 question={question}
                 dispatch={dispatch}
                 view={view}
+                currentPage={currentPage}
             />
         );
     } else if (isTextQuestion(question)) {

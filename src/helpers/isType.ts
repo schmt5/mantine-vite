@@ -1,9 +1,9 @@
-import { TChoiceQuestion, TQuestion, TTextQuestion } from "./Types";
+import { TBlock, TChoiceQuestion, TTextQuestion } from "./Types";
 
-export const isChoiceQuestion = (question: TQuestion): question is TChoiceQuestion => {
-    return (question as TChoiceQuestion).choiceQuestionBlock !== undefined;
+export const isChoiceQuestion = (block: TBlock): block is TChoiceQuestion => {
+    return block.type === 'choiceQuestion';
 }
 
-export const isTextQuestion = (question: TQuestion): question is TTextQuestion => {
-    return (question as TTextQuestion).textBlock !== undefined;
+export const isTextQuestion = (block: TBlock): block is TTextQuestion => {
+    return block.type === 'textQuestion';
 }

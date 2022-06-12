@@ -1,46 +1,63 @@
-import { ActionIcon, Button, Group, Paper, SegmentedControl, Text, TextInput } from '@mantine/core';
+import { ActionIcon, Button, Group, Paper, SegmentedControl, Text, Textarea, TextInput } from '@mantine/core';
 import { LetterA, LetterF, Plus, Trash } from 'tabler-icons-react';
 import { TChoiceQuestion } from '../../helpers/Types';
 import { formList, useForm } from '@mantine/form';
-import { updateChoiceQuestion } from '../../helpers/supabaseQueries';
+import { deleteChoiceQuestion, fetchPage, updateChoiceQuestion, updatePage } from '../../helpers/supabaseQueries';
+import { useState } from 'react';
 
 interface IChoiceQuestionAuthorView {
     question: TChoiceQuestion;
     dispatch: any;
+    currentPage: number;
 }
 
-export const ChoiceQuestionAuthorView = ({ question, dispatch }: IChoiceQuestionAuthorView) => {
-    const choicesWithSolution = question.choices.map(choice => ({ choice: choice, isCorrect: `${question.solution.includes(choice)}` }));
+export const ChoiceQuestionAuthorView = ({ question, dispatch, currentPage }: IChoiceQuestionAuthorView) => {
+    const [showNote, setShowNote] = useState(false);
     const form = useForm({
         initialValues: {
-            label: question.label ?? '',
-            choicesWithSolution: formList(choicesWithSolution),
+            label: question.data.label ?? '',
+            note: question.data.note ?? '',
+            options: formList(question.data.options),
         }
     });
+
+    const handleDelete = async () => {
+        dispatch({
+            type: 'delete',
+            payload: question,
+        });
+
+        deleteChoiceQuestion(question.id);
+    }
 
     return (
         <Paper p={'md'}>
             <form onSubmit={form.onSubmit(values => {
-                const choices = values.choicesWithSolution.map(item => item.choice);
-                const solution = values.choicesWithSolution
-                    .filter(item => item.isCorrect === 'true')
-                    .map(item => item.choice);
-
-                const newQuestion = {
+                const newQuestion: TChoiceQuestion = {
                     ...question,
-                    label: values.label,
-                    choices: choices,
-                    solution: solution,
+                    data: {
+                        label: values.label,
+                        note: values.note,
+                        options: values.options,
+                    }
                 }
 
                 dispatch({
                     type: 'update',
                     payload: newQuestion,
                 });
-                updateChoiceQuestion(newQuestion.id, newQuestion.label, newQuestion.choices, newQuestion.solution);
-
+                updateChoiceQuestion(newQuestion.id, newQuestion.data);
             })}>
-                <Text mb={'md'} weight={500}>Auswahlfrage</Text>
+                <Group position='apart'>
+                    <Text mb={'md'} weight={500}>Auswahlfrage</Text>
+                    <ActionIcon
+                        color={'red'}
+                        variant={'hover'}
+                        onClick={handleDelete}
+                    >
+                        <Trash size={18} />
+                    </ActionIcon>
+                </Group>
                 <TextInput
                     aria-label='Frage'
                     placeholder='Frage'
@@ -48,7 +65,7 @@ export const ChoiceQuestionAuthorView = ({ question, dispatch }: IChoiceQuestion
                     {...form.getInputProps('label')}
                 />
 
-                {form.values.choicesWithSolution.map((choice, index) => (
+                {form.values.options.map((option, index) => (
                     <Group key={index} mt={'md'}>
                         <TextInput
                             aria-label='Antwort'
@@ -56,19 +73,19 @@ export const ChoiceQuestionAuthorView = ({ question, dispatch }: IChoiceQuestion
                             variant='filled'
                             icon={<LetterA size={18} />}
                             sx={{ flex: 1 }}
-                            {...form.getListInputProps('choicesWithSolution', index, 'choice')}
+                            {...form.getListInputProps('options', index, 'label')}
                         />
                         <SegmentedControl
                             data={[
-                                { label: 'wahr', value: 'true' },
-                                { label: 'falsch', value: 'false' },
+                                { label: 'wahr', value: 'correct' },
+                                { label: 'falsch', value: 'incorrect' },
                             ]}
-                            {...form.getListInputProps('choicesWithSolution', index, 'isCorrect')}
+                            {...form.getListInputProps('options', index, 'status')}
                         />
                         <ActionIcon
                             color={'red'}
                             variant={'hover'}
-                            onClick={() => form.removeListItem('choicesWithSolution', index)}
+                            onClick={() => form.removeListItem('options', index)}
                         >
                             <Trash size={18} />
                         </ActionIcon>
@@ -78,12 +95,30 @@ export const ChoiceQuestionAuthorView = ({ question, dispatch }: IChoiceQuestion
                     <Button
                         variant='subtle'
                         leftIcon={<Plus size={18} />}
-                        onClick={() => form.addListItem('choicesWithSolution', { choice: '', isCorrect: 'false' })}
+                        onClick={() => form.addListItem('options', { label: '', status: 'incorrect' })}
                     >
                         Antwort hinzufügen
                     </Button>
+                    {!showNote && (
+                        <Button
+                            variant='subtle'
+                            leftIcon={<Plus size={18} />}
+                            onClick={() => setShowNote(true)}
+                        >
+                            Bemerkung hinzufügen
+                        </Button>
+                    )}
                 </Group>
-                <Group position='right'>
+                {showNote && (
+                    <Textarea
+                        mt={'md'}
+                        aria-label='Bemerkung'
+                        placeholder='Bemerkung zur Lösung'
+                        {...form.getInputProps('note')}
+                    />
+                )}
+
+                <Group mt={'md'} position='right'>
                     <Button type='submit' variant='subtle'>Speichern</Button>
                 </Group>
             </form>
