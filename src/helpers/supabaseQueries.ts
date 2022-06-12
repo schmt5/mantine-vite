@@ -2,13 +2,55 @@ import { supabase } from "./supabaseClient"
 import { TChoiceData, TTextData } from "./Types";
 
 /*
+    Pages
+*/
+export const fetchPages = async () => {
+    try {
+        let { data, error, status } = await supabase
+            .from('pages')
+            .select('*')
+            .order('position')
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        if (data) {
+            return data;
+        }
+    } catch (error: any) {
+        alert(error.message)
+    }
+}
+
+export const updatePage = async (id: number, position: number) => {
+    try {
+        let { data, error, status } = await supabase
+            .from('pages')
+            .update({ position })
+            .match({ id })
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        if (data) {
+            return data;
+        }
+    } catch (error: any) {
+        alert(error.message)
+    }
+}
+
+/*
     Blocks
 */
-export const fetchBlocks = async () => {
+export const fetchBlocks = async (pageId: number) => {
     try {
         let { data, error, status } = await supabase
             .from('blocks')
             .select('*')
+            .match({ page: pageId })
 
         if (error && status !== 406) {
             throw error;
@@ -215,24 +257,3 @@ export const fetchPage = async (pageId?: number) => {
         alert(error.message)
     }
 }
-
-export const updatePage = async (id: number, label: string, ordered_ids: string[]) => {
-    try {
-        const { data, error, status } = await supabase
-            .from('pages')
-            .update({ label: label, ordered_ids: ordered_ids })
-            .match({ id: id })
-
-        if (error && status !== 406) {
-            throw error;
-        }
-
-        if (data) {
-            return data[0];
-        }
-
-    } catch (error: any) {
-        console.error(error.message)
-    }
-}
-

@@ -1,5 +1,11 @@
 export type TBlock = TChoiceQuestion | TTextQuestion;
 
+export type TPage = {
+    id: number;
+    label: string;
+    position: number;
+}
+
 export type TChoiceQuestion = {
     id: number;
     type: string;
@@ -32,13 +38,3 @@ export type TTextData = {
 }
 
 export type TQuestion = TChoiceQuestion | TTextQuestion;
-
-
-
-
-export type TPage = {
-    id: number,
-    created_at: string,
-    label: string,
-    ordered_ids: string[],
-}

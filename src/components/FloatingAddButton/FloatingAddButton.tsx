@@ -30,19 +30,21 @@ export const FloatingAddButton = ({ dispatch, currentPage }: IFloatingAddButton)
 
 
     return (
-        <Affix position={{ top: 80, right: 24 }}>
-            <Menu control={<Button
-                leftIcon={<Plus size={18} />}
-            >
-                Hinzufügen
-            </Button>}>
-                <Menu.Label>Inhalt</Menu.Label>
-                <Menu.Item icon={<AlignLeft size={18} />}>Absatz</Menu.Item>
-                <Divider />
-                <Menu.Label>Fragen</Menu.Label>
-                <Menu.Item onClick={addChoiceQuestion} icon={<Circle size={18} />}>Single-Choice</Menu.Item>
-                <Menu.Item onClick={addTextQuestion} icon={<CursorText size={18} />}>Text</Menu.Item>
-            </Menu>
-        </Affix>
+        <>
+            <Affix position={{ top: 80, right: 24 }}>
+                <Menu control={<Button
+                    leftIcon={<Plus size={18} />}
+                >
+                    Hinzufügen
+                </Button>}>
+                    <Menu.Label>Inhalt</Menu.Label>
+                    <Menu.Item icon={<AlignLeft size={18} />}>Absatz</Menu.Item>
+                    <Divider />
+                    <Menu.Label>Fragen</Menu.Label>
+                    <Menu.Item onClick={addChoiceQuestion} icon={<Circle size={18} />}>Single-Choice</Menu.Item>
+                    <Menu.Item onClick={addTextQuestion} icon={<CursorText size={18} />}>Text</Menu.Item>
+                </Menu>
+            </Affix>
+        </>
     );
 }
